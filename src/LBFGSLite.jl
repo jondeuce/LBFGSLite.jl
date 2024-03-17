@@ -138,7 +138,7 @@ Parameter struct for LBFGS.
     not sufficient. The parameter must be positive but might as well
     be less than 1.0e-3 in practice.
 """
-@kwdef struct LBFGSParams{T <: AbstractFloat}
+Base.@kwdef struct LBFGSParams{T <: AbstractFloat}
     mem_size::Int = 8
     g_epsilon::T = T(1e-5)
     past::Int = 3
@@ -168,8 +168,7 @@ struct LBFGSWorkspace{T <: AbstractFloat}
 end
 
 function LBFGSWorkspace(x::AbstractVector{T}, params::LBFGSParams{T}) where {T <: AbstractFloat}
-    (; past, mem_size) = params
-    m = mem_size
+    m = params.mem_size
     n = length(x)
 
     # intermediate variables
@@ -177,7 +176,7 @@ function LBFGSWorkspace(x::AbstractVector{T}, params::LBFGSParams{T}) where {T <
     g  = zeros(T, n)
     gp = zeros(T, n)
     d  = zeros(T, n)
-    pf = zeros(T, max(1, past))
+    pf = zeros(T, max(1, params.past))
 
     # limited memory
     lm_alpha = zeros(T, m)
@@ -331,16 +330,15 @@ function _optimize!(
     params::LBFGSParams{T},
 ) where {F, T}
     # Input parameters.
-    (; mem_size, past, min_step, max_step, max_iterations, g_epsilon, delta, cautious_factor) = params
-    m = mem_size
-    ϵg = g_epsilon
+    m = params.mem_size
+    ϵg = params.g_epsilon
     local st::LBFGS_STATUS
 
     # Intermediate variables.
-    (; xp, g, gp, d, pf) = work
+    xp, g, gp, d, pf = work.xp, work.g, work.gp, work.d, work.pf
 
     # Limited memory.
-    (; lm_alpha, lm_s, lm_y, lm_ys) = work
+    lm_alpha, lm_s, lm_y, lm_ys = work.lm_alpha, work.lm_s, work.lm_y, work.lm_ys
 
     fill!(lm_alpha, 0)
     fill!(lm_s, 0)
@@ -378,10 +376,10 @@ function _optimize!(
             copyto!(gp, g)
 
             # If the step bound can be provided dynamically, then apply it.
-            step = step < max_step ? step : max_step / 2
+            step = step < params.max_step ? step : params.max_step / 2
 
             # Search for an optimal step.
-            fx, step, st = line_search_lewisoverton!(fg!, x, fx, g, step, d, xp, gp, min_step, max_step, params)
+            fx, step, st = line_search_lewisoverton!(fg!, x, fx, g, step, d, xp, gp, params)
 
             if Int(st) < 0
                 # Revert to the previous point.
@@ -403,23 +401,23 @@ function _optimize!(
 
             # Test for stopping criterion.
             # The criterion is given by the following formula:
-            #   |f(past_x) - f(x)| / max(1, |f(x)|) < \delta.
-            if past > 0
+            #   |f(past_x) - f(x)| / max(1, |f(x)|) < delta.
+            if params.past > 0
                 # We don't test the stopping criterion while k < past.
-                if past <= k
+                if params.past <= k
                     # The stopping criterion.
-                    rate = abs(pf[mod1(k + 1, past)] - fx) / max(one(T), abs(fx))
-                    if rate < delta
+                    rate = abs(pf[mod1(k + 1, params.past)] - fx) / max(one(T), abs(fx))
+                    if rate < params.delta
                         st = LBFGS_STOP
                         break
                     end
                 end
 
                 # Store the current value of the cost function.
-                pf[mod1(k + 1, past)] = fx
+                pf[mod1(k + 1, params.past)] = fx
             end
 
-            if max_iterations != 0 && max_iterations <= k
+            if params.max_iterations != 0 && params.max_iterations <= k
                 # Maximum number of iterations.
                 st = LBFGSERR_MAXIMUMITERATION
                 break
@@ -456,7 +454,7 @@ function _optimize!(
             # Dong-Hui Li and Masao Fukushima. On the global convergence of
             # the BFGS method for nonconvex unconstrained optimization problems.
             # SIAM Journal on Optimization, Vol 11, No 4, pp. 1054-1064, 2011.
-            cau = @views norm(lm_s[:, last])^2 * norm(gp) * cautious_factor
+            cau = @views norm(lm_s[:, last])^2 * norm(gp) * params.cautious_factor
 
             if ys > cau
                 # Recursive formula to compute dir = -(H \cdot g).
@@ -509,16 +507,13 @@ function line_search_lewisoverton!(
     s::AbstractVector{T},
     xp::AbstractVector{T},
     gp::AbstractVector{T},
-    step_min::T,
-    step_max::T,
     params::LBFGSParams{T},
 ) where {F, T}
-    (; max_linesearch, f_dec_coeff, s_curv_coeff) = params
     count = 0
     brackt = false
     touched = false
     mu = zero(T)
-    nu = step_max
+    nu = params.max_step
     local st::LBFGS_STATUS
 
     if !(step > 0)
@@ -537,8 +532,8 @@ function line_search_lewisoverton!(
 
     # The initial value of the cost function.
     finit = fx
-    dgtest = f_dec_coeff * dginit
-    dstest = s_curv_coeff * dginit
+    dgtest = params.f_dec_coeff * dginit
+    dstest = params.s_curv_coeff * dginit
 
     while true
         @. x = xp + step * s
@@ -567,7 +562,7 @@ function line_search_lewisoverton!(
             end
         end
 
-        if count > max_linesearch
+        if count > params.max_linesearch
             # Maximum number of iteration.
             st = LBFGSERR_MAXIMUMLINESEARCH
             break
@@ -585,13 +580,13 @@ function line_search_lewisoverton!(
             step *= 2
         end
 
-        if step < step_min
+        if step < params.min_step
             # The step is the minimum value.
             st = LBFGSERR_MINIMUMSTEP
             break
         end
 
-        if step > step_max
+        if step > params.max_step
             if touched
                 # The step is the maximum value.
                 st = LBFGSERR_MAXIMUMSTEP
@@ -599,7 +594,7 @@ function line_search_lewisoverton!(
             else
                 # The maximum value should be tried once.
                 touched = true
-                step = step_max
+                step = params.max_step
             end
         end
     end
