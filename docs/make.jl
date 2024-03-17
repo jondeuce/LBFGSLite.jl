@@ -5,7 +5,7 @@ DocMeta.setdocmeta!(LBFGSLite, :DocTestSetup, :(using LBFGSLite); recursive=true
 
 makedocs(;
     modules=[LBFGSLite],
-    authors="Jonathan Doucette <jdoucette@physics.ubc.ca> and contributors",
+    authors="Jonathan Doucette <jdoucette@physics.ubc.ca>, Christian Kames <ckames@physics.ubc.ca>, and contributors",
     sitename="LBFGSLite.jl",
     format=Documenter.HTML(;
         canonical="https://jondeuce.github.io/LBFGSLite.jl",

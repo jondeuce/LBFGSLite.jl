@@ -1,6 +1,6 @@
 name = "LBFGSLite"
 uuid = "dfec7bf3-4a2e-4194-a658-565c8b4d331b"
-authors = ["Jonathan Doucette <jdoucette@physics.ubc.ca> and contributors"]
+authors = ["Jonathan Doucette <jdoucette@physics.ubc.ca>, Christian Kames <ckames@physics.ubc.ca>, and contributors"]
 version = "1.0.0-DEV"
 
 [deps]
