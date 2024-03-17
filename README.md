@@ -5,3 +5,5 @@
 [![Build Status](https://github.com/jondeuce/LBFGSLite.jl/actions/workflows/CI.yml/badge.svg?branch=master)](https://github.com/jondeuce/LBFGSLite.jl/actions/workflows/CI.yml?query=branch%3Amaster)
 [![Coverage](https://codecov.io/gh/jondeuce/LBFGSLite.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jondeuce/LBFGSLite.jl)
 [![Aqua](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
+
+Julia port of the [`LBFGS-Lite` C++ header-only library for unconstrained optimization](https://github.com/ZJU-FAST-Lab/LBFGS-Lite).
