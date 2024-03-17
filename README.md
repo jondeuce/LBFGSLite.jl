@@ -20,7 +20,7 @@ From [`LBFGS-Lite`](https://github.com/ZJU-FAST-Lab/LBFGS-Lite):
 
 - __Cautious update__ by [Li and Fukushima](https://epubs.siam.org/doi/pdf/10.1137/S1052623499354242) is employed for __global convergence__ in nonconvex cases.
 
-- __Externally provided maximum step size__ is convenient to functions defined on bounded sets.
+- __Externally provided maximum step size__ is convenient for functions defined on bounded sets.
 
 ## Usage
 

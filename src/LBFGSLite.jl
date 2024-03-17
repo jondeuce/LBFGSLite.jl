@@ -12,7 +12,7 @@ export optimize, optimize!
     LBFGS_STOP
     # The iteration has been canceled by the monitor callback.
     LBFGS_CANCELLED
-    # L-BFGS line search returns successfully
+    # L-BFGS line search returned successfully.
     LBFGS_LINESEARCH_SUCCESS
 
     # Unknown error.
@@ -43,7 +43,7 @@ export optimize, optimize!
     LBFGSERR_MINIMUMSTEP
     # The line-search step became larger than LBFGSParams.max_step.
     LBFGSERR_MAXIMUMSTEP
-    # Line search reaches the maximum, assumptions not satisfied or precision not achievable
+    # Line search reaches the maximum, assumptions not satisfied or precision not achievable.
     LBFGSERR_MAXIMUMLINESEARCH
     # The algorithm routine reaches the maximum number of iterations.
     LBFGSERR_MAXIMUMITERATION
@@ -53,7 +53,7 @@ export optimize, optimize!
     LBFGSERR_INVALIDPARAMETERS
     # The current search direction increases the cost function value.
     LBFGSERR_INCREASEGRADIENT
-    # Array dimensions do not match
+    # Array dimensions do not match.
     LBFGSERR_DIMENSIONMISMATCH
 end
 
@@ -66,77 +66,51 @@ Parameter struct for LBFGS.
 
   - `mem_size::Int = 8`:
     The number of corrections to approximate the inverse hessian matrix.
-    The L-BFGS routine stores the computation results of previous m
-    iterations to approximate the inverse hessian matrix of the current
-    iteration. This parameter controls the size of the limited memories
-    (corrections). The default value is 8. Values less than 3 are
-    not recommended. Large values will result in excessive computing time.
+    The L-BFGS routine stores the computation results of previous m iterations to approximate the inverse hessian matrix of the current iteration.
+    This parameter controls the size of the limited memories (corrections).
+    Values less than 3 are not recommended.
+    Large values will result in excessive computing time.
   - `g_epsilon::T = 1.0e-5`:
-    Epsilon for grad convergence test. DO NOT USE IT in nonsmooth cases!
+    Epsilon for grad convergence test.
+    DO NOT USE IT in nonsmooth cases!
     Set it to 0.0 and use past-delta-based test for nonsmooth functions.
-    This parameter determines the accuracy with which the solution is to
-    be found. A minimization terminates when
-    ||g(x)||_inf / max(1, ||x||_inf) < g_epsilon,
-    where ||.||_inf is the infinity norm. The default value is 1.0e-5.
-    This should be greater than 1.0e-6 in practice because L-BFGS does
-    not directly reduce first-order residual. It still needs the function
-    value which can be corrupted by machine_prec when ||g|| is small.
+    This parameter determines the accuracy with which the solution is to be found.
+    A minimization terminates when ||g(x)||_∞ / max(1, ||x||_∞) < g_epsilon, where ||.||_∞ is the infinity norm.
+    This should be greater than 1.0e-6 in practice because L-BFGS does not directly reduce first-order residual.
+    It still needs the function value which can be corrupted by machine_prec when ||g|| is small.
   - `past::Int = 3`:
     Distance for delta-based convergence test.
-    This parameter determines the distance, in iterations, to compute
-    the rate of decrease of the cost function. If the value of this
-    parameter is zero, the library does not perform the delta-based
-    convergence test. The default value is 3.
+    This parameter determines the distance, in iterations, to compute the rate of decrease of the cost function.
+    If the value of this parameter is zero, the library does not perform the delta-based convergence test.
   - `delta::T = 1.0e-6`:
     Delta for convergence test.
-    This parameter determines the minimum rate of decrease of the
-    cost function. The library stops iterations when the following
-    condition is met:
-    |f' - f| / max(1, |f|) < delta,
-    where f' is the cost value of past iterations ago, and f is
-    the cost value of the current iteration.
-    The default value is 1.0e-6.
+    This parameter determines the minimum rate of decrease of the cost function.
+    The library stops iterations when the following condition is met: |f' - f| / max(1, |f|) < delta, where f' is the cost value of past iterations ago, and f is the cost value of the current iteration.
   - `max_iterations::Int = 0`:
     The maximum number of iterations.
-    The lbfgs_optimize() function terminates an minimization process with
-    ::LBFGSERR_MAXIMUMITERATION status code when the iteration count
-    exceedes this parameter. Setting this parameter to zero continues an
-    minimization process until a convergence or error. The default value
-    is 0.
+    The `optimize` function terminates an minimization process with `st::LBFGSERR_MAXIMUMITERATION` status code when the iteration count exceedes this parameter.
+    Setting this parameter to zero continues a minimization process until a convergence or error.
   - `max_linesearch::Int = 64`:
     The maximum number of trials for the line search.
-    This parameter controls the number of function and gradients evaluations
-    per iteration for the line search routine. The default value is 64.
+    This parameter controls the number of function and gradients evaluations per iteration for the line search routine.
   - `min_step::T = 1.0e-20`:
     The minimum step of the line search routine.
-    The default value is 1.0e-20. This value need not be modified unless
-    the exponents are too large for the machine being used, or unless the
-    problem is extremely badly scaled (in which case the exponents should
-    be increased).
+    This value need not be modified unless the exponents are too large for the machine being used, or unless the problem is extremely badly scaled (in which case the exponents should be increased).
   - `max_step::T = 1.0e+20`:
     The maximum step of the line search.
-    The default value is 1.0e+20. This value need not be modified unless
-    the exponents are too large for the machine being used, or unless the
-    problem is extremely badly scaled (in which case the exponents should
-    be increased).
-  - `f_dec_coeff = 1.0e-4`:
+    This value need not be modified unless the exponents are too large for the machine being used, or unless the problem is extremely badly scaled (in which case the exponents should be increased).
+  - `f_dec_coeff::T = 1.0e-4`:
     A parameter to control the accuracy of the line search routine.
-    The default value is 1.0e-4. This parameter should be greater
-    than zero and smaller than 1.0.
-  - `s_curv_coeff = 0.9`:
+    This parameter should be greater than zero and smaller than 1.0.
+  - `s_curv_coeff::T = 0.9`:
     A parameter to control the accuracy of the line search routine.
-    The default value is 0.9. If the function and gradient
-    evaluations are inexpensive with respect to the cost of the
-    iteration (which is sometimes the case when solving very large
-    problems) it may be advantageous to set this parameter to a small
-    value. A typical small value is 0.1. This parameter should be
-    greater than the f_dec_coeff parameter and smaller than 1.0.
-  - `cautious_factor = 1.0e-6`:
+    If the function and gradient evaluations are inexpensive with respect to the cost of the iteration (which is sometimes the case when solving very large problems) it may be advantageous to set this parameter to a small value.
+    A typical small value is 0.1.
+    This parameter should be greater than the f_dec_coeff parameter and smaller than 1.0.
+  - `cautious_factor::T = 1.0e-6`:
     A parameter to ensure the global convergence for nonconvex functions.
-    The default value is 1.0e-6. The parameter performs the so called
-    cautious update for L-BFGS, especially when the convergence is
-    not sufficient. The parameter must be positive but might as well
-    be less than 1.0e-3 in practice.
+    The parameter performs the so called cautious update for L-BFGS, especially when the convergence is not sufficient.
+    The parameter must be positive but might as well be less than 1.0e-3 in practice.
 """
 Base.@kwdef struct LBFGSParams{T <: AbstractFloat}
     mem_size::Int = 8
@@ -153,14 +127,14 @@ Base.@kwdef struct LBFGSParams{T <: AbstractFloat}
 end
 
 struct LBFGSWorkspace{T <: AbstractFloat}
-    # intermediate variables
+    # Intermediate variables
     xp::Vector{T}
     g::Vector{T}
     gp::Vector{T}
     d::Vector{T}
     pf::Vector{T}
 
-    # limited memory
+    # Limited memory
     lm_alpha::Vector{T}
     lm_s::Matrix{T}
     lm_y::Matrix{T}
@@ -171,14 +145,14 @@ function LBFGSWorkspace(x::AbstractVector{T}, params::LBFGSParams{T}) where {T <
     m = params.mem_size
     n = length(x)
 
-    # intermediate variables
+    # Intermediate variables
     xp = zeros(T, n)
     g  = zeros(T, n)
     gp = zeros(T, n)
     d  = zeros(T, n)
     pf = zeros(T, max(1, params.past))
 
-    # limited memory
+    # Limited memory
     lm_alpha = zeros(T, m)
     lm_s = zeros(T, n, m)
     lm_y = zeros(T, n, m)
@@ -199,7 +173,7 @@ end
         x::AbstractVector{T},
         work::LBFGSWorkspace{T},
         params::LBFGSParams{T} = LBFGSParams{T}(),
-    ) -> x, fx::T, ls::LBFGS_STATUS
+    ) -> x, fx::T, st::LBFGS_STATUS
 
 Minimize a function using L-BFGS.
 
@@ -213,8 +187,7 @@ Assumptions:
 
 ### Arguments
 
-  - `fg!(x, g)::F`: In-place function that computes the objective fx = fg!(x, g)
-    and stores the gradient in g.
+  - `fg!(x, g)::F`: In-place function that computes the objective fx = fg!(x, g) and stores the gradient in g.
   - `x::AbstractVector{T}`: Vector of decision variables. Used for the initial guess.
   - `work::LBFGSWorkspace{T}`: Struct with pre-allocated arrays.
   - `params::LBFGSParams{T} = LBFGSParams{T}()`: The parameters for L-BFGS optimization.
@@ -223,7 +196,7 @@ Assumptions:
 
   - `x::AbstractVector{T}`: Vector of decision variables.
   - `fx::T`: Final value of cost function.
-  - `ls::LBFGS_STATUS`: Status code.
+  - `st::LBFGS_STATUS`: Status code.
 """
 function optimize(fg!, x, params = LBFGSParams{eltype(x)}())
     return optimize!(fg!, copy(x), LBFGSWorkspace(x, params), params)
@@ -349,10 +322,9 @@ function _optimize!(
     fx = fg!(x, g)
 
     # Store the initial value of the cost function.
-    pf[1] = fx
+    @inbounds pf[1] = fx
 
-    # Compute the direction
-    # we assume the initial hessian matrix H_0 as the identity matrix.
+    # Compute the direction. We assume the initial hessian matrix H_0 is the identity matrix.
     @. d = -g
 
     # Make sure that the initial variables are not a stationary point.
@@ -366,11 +338,11 @@ function _optimize!(
         # Compute the initial step:
         step = one(T) / norm(d)
 
-        k = 1
+        iter = 1
         last = 1
         bound = 0
 
-        while true
+        @inbounds while true
             # Store the current position and gradient vectors.
             copyto!(xp, x)
             copyto!(gp, g)
@@ -390,7 +362,7 @@ function _optimize!(
 
             # Convergence test.
             # The criterion is given by the following formula:
-            #   ||g(x)||_inf / max(1, ||x||_inf) < g_epsilon
+            #   ||g(x)||_∞ / max(1, ||x||_∞) < g_epsilon.
             gnorm_inf = norm(g, Inf)
             xnorm_inf = norm(x, Inf)
             if gnorm_inf < ϵg * max(one(T), xnorm_inf)
@@ -403,10 +375,10 @@ function _optimize!(
             # The criterion is given by the following formula:
             #   |f(past_x) - f(x)| / max(1, |f(x)|) < delta.
             if params.past > 0
-                # We don't test the stopping criterion while k < past.
-                if params.past <= k
+                # We don't test the stopping criterion while iter < past.
+                if params.past <= iter
                     # The stopping criterion.
-                    rate = abs(pf[mod1(k + 1, params.past)] - fx) / max(one(T), abs(fx))
+                    rate = abs(pf[mod1(iter + 1, params.past)] - fx) / max(one(T), abs(fx))
                     if rate < params.delta
                         st = LBFGS_STOP
                         break
@@ -414,17 +386,17 @@ function _optimize!(
                 end
 
                 # Store the current value of the cost function.
-                pf[mod1(k + 1, params.past)] = fx
+                pf[mod1(iter + 1, params.past)] = fx
             end
 
-            if params.max_iterations != 0 && params.max_iterations <= k
+            if params.max_iterations != 0 && params.max_iterations <= iter
                 # Maximum number of iterations.
                 st = LBFGSERR_MAXIMUMITERATION
                 break
             end
 
             # Count the iteration number.
-            k += 1
+            iter += 1
 
             # Update vectors s and y:
             #   s_{k+1} = x_{k+1} - x_{k} = \step * d_{k}.
@@ -435,8 +407,7 @@ function _optimize!(
             # Compute scalars ys and yy:
             #   ys = y^t \cdot s = 1 / \rho.
             #   yy = y^t \cdot y.
-            # Notice that yy is used for scaling the
-            # hessian matrix H_0 (Cholesky factor).
+            # Notice that yy is used for scaling the hessian matrix H_0 (Cholesky factor).
             ys = @views dot(lm_y[:, last], lm_s[:, last])
             yy = @views norm(lm_y[:, last])^2
             lm_ys[last] = ys
@@ -445,24 +416,18 @@ function _optimize!(
             @. d = -g
 
             # Only cautious update is performed here as long as
-            # (y^t \cdot s) / ||s_{k+1}||^2 > \epsilon * ||g_{k}||^\alpha,
-            # where \epsilon is the cautious factor and a proposed value
-            # for \alpha is 1.
+            #   (y^t \cdot s) / ||s_{k+1}||^2 > \epsilon * ||g_{k}||^\alpha,
+            # where \epsilon is the cautious factor and a proposed value for \alpha is 1.
             # This is not for enforcing the PD of the approxomated Hessian
             # since ys > 0 is already ensured by the weak Wolfe condition.
             # This is to ensure the global convergence as described in:
-            # Dong-Hui Li and Masao Fukushima. On the global convergence of
-            # the BFGS method for nonconvex unconstrained optimization problems.
-            # SIAM Journal on Optimization, Vol 11, No 4, pp. 1054-1064, 2011.
+            # Dong-Hui Li and Masao Fukushima. On the global convergence of the BFGS method for nonconvex unconstrained optimization problems. SIAM Journal on Optimization, Vol 11, No 4, pp. 1054-1064, 2011.
             cau = @views norm(lm_s[:, last])^2 * norm(gp) * params.cautious_factor
 
             if ys > cau
                 # Recursive formula to compute dir = -(H \cdot g).
                 # This is described in page 779 of:
-                # Jorge Nocedal.
-                # Updating Quasi-Newton Matrices with Limited Storage.
-                # Mathematics of Computation, Vol. 35, No. 151,
-                # pp. 773--782, 1980.
+                # Jorge Nocedal. Updating Quasi-Newton Matrices with Limited Storage. Mathematics of Computation, Vol. 35, No. 151, pp. 773--782, 1980.
                 bound += 1
                 bound = min(m, bound)
                 last = mod1(last + 1, m)
@@ -473,7 +438,7 @@ function _optimize!(
                     j = mod1(j - 1, m)
                     # \alpha_{j} = \rho_{j} s^{t}_{j} \cdot q_{k+1}.
                     alpha = @views dot(lm_s[:, j], d) / lm_ys[j]
-                    # q_{i} = q_{i+1} - \alpha_{i} y_{i}. */
+                    # q_{i} = q_{i+1} - \alpha_{i} y_{i}.
                     @views @. d -= alpha * lm_y[:, j]
                     lm_alpha[j] = alpha
                 end
@@ -535,7 +500,7 @@ function line_search_lewisoverton!(
     dgtest = params.f_dec_coeff * dginit
     dstest = params.s_curv_coeff * dginit
 
-    while true
+    @inbounds while true
         @. x = xp + step * s
 
         # Evaluate the function and gradient values.
